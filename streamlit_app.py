@@ -31,7 +31,7 @@ st.dataframe(sales_by_month)
 
 st.line_chart(sales_by_month, y="Sales")
 
-st.write("## Your additions")
+st.write("## My additions")
 
 st.write("### (1) Select a Category")
 
