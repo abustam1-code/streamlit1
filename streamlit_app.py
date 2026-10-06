@@ -9,13 +9,10 @@ st.write("### Input Data and Examples")
 df = pd.read_csv("Superstore_Sales_utf8.csv", parse_dates=True)
 st.dataframe(df)
 
-# This bar chart will not have solid bars--but lines--because the detail data is being graphed independently
 st.bar_chart(df, x="Category", y="Sales")
 
-# Now let's do the same graph where we do the aggregation first in Pandas... (this results in a chart with solid bars)
 st.dataframe(df.groupby("Category").sum())
 
-# Using as_index=False here preserves the Category as a column.
 st.bar_chart(
     df.groupby("Category", as_index=False).sum(),
     x="Category",
@@ -23,32 +20,18 @@ st.bar_chart(
     color="#04f"
 )
 
-# Aggregating by time
-# Here we ensure Order_Date is in datetime format, then set it as an index to our dataframe
 df["Order_Date"] = pd.to_datetime(df["Order_Date"])
 df.set_index("Order_Date", inplace=True)
 
-# Here the Grouper is using our newly set index to group by Month ('M')
 sales_by_month = df.filter(items=["Sales"]).groupby(
-    pd.Grouper(freq="M")
+    pd.Grouper(freq="ME")
 ).sum()
 
 st.dataframe(sales_by_month)
 
-# Here the grouped months are the index and automatically used for the x axis
 st.line_chart(sales_by_month, y="Sales")
 
-
-# ==========================================================
-# YOUR ADDITIONS
-# ==========================================================
-
 st.write("## Your additions")
-
-
-# ==========================================================
-# (1) Category dropdown
-# ==========================================================
 
 st.write("### (1) Select a Category")
 
@@ -58,11 +41,6 @@ selected_category = st.selectbox(
     "Category",
     categories
 )
-
-
-# ==========================================================
-# (2) Sub_Category multiselect based on selected Category
-# ==========================================================
 
 st.write("### (2) Select Sub_Category")
 
@@ -78,17 +56,9 @@ selected_subcategories = st.multiselect(
     default=sub_categories
 )
 
-
-# Filter the data based on the selected Sub_Category values
-
 selected_df = category_df[
     category_df["Sub_Category"].isin(selected_subcategories)
 ]
-
-
-# ==========================================================
-# (3) Line chart of Sales for selected Sub_Category
-# ==========================================================
 
 st.write("### (3) Sales for Selected Sub_Category")
 
@@ -110,11 +80,6 @@ if len(selected_subcategories) > 0:
 else:
     st.warning("Please select at least one Sub_Category.")
 
-
-# ==========================================================
-# (4) Three metrics
-# ==========================================================
-
 st.write("### (4) Metrics for Selected Sub_Category")
 
 if len(selected_subcategories) > 0:
@@ -129,26 +94,6 @@ if len(selected_subcategories) > 0:
         else 0
     )
 
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric(
-        "Total Sales",
-        f"${total_sales:,.2f}"
-    )
-
-    col2.metric(
-        "Total Profit",
-        f"${total_profit:,.2f}"
-    )
-
-
-    # ======================================================
-    # (5) Delta for Overall Profit Margin
-    # ======================================================
-
-    # Calculate the overall profit margin for ALL products
-    # across ALL categories
-
     all_sales = df["Sales"].sum()
 
     all_profit = df["Profit"].sum()
@@ -159,12 +104,21 @@ if len(selected_subcategories) > 0:
         else 0
     )
 
-    # Difference between selected Sub_Category margin
-    # and overall average margin
-
     margin_difference = (
         overall_profit_margin -
         overall_average_profit_margin
+    )
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Total Sales",
+        f"${total_sales:,.2f}"
+    )
+
+    col2.metric(
+        "Total Profit",
+        f"${total_profit:,.2f}"
     )
 
     col3.metric(
