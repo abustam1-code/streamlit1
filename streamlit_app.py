@@ -35,3 +35,122 @@ st.write("### (2) add a multi-select for Sub_Category *in the selected Category 
 st.write("### (3) show a line chart of sales for the selected items in (2)")
 st.write("### (4) show three metrics (https://docs.streamlit.io/library/api-reference/data/st.metric) for the selected items in (2): total sales, total profit, and overall profit margin (%)")
 st.write("### (5) use the delta option in the overall profit margin metric to show the difference between the overall average profit margin (all products across all categories)")
+
+```python
+import streamlit as st
+import pandas as pd
+
+# Load data
+df = pd.read_csv("your_data.csv")
+
+st.title("Sales Dashboard")
+
+# --------------------------------------------------
+# 1. Category dropdown
+# --------------------------------------------------
+
+categories = sorted(df["Category"].dropna().unique())
+
+selected_category = st.selectbox(
+    "Select a Category",
+    categories
+)
+
+# --------------------------------------------------
+# 2. Sub_Category multiselect based on Category
+# --------------------------------------------------
+
+category_df = df[df["Category"] == selected_category]
+
+sub_categories = sorted(
+    category_df["Sub_Category"].dropna().unique()
+)
+
+selected_subcategories = st.multiselect(
+    "Select Sub_Category",
+    sub_categories,
+    default=sub_categories
+)
+
+# --------------------------------------------------
+# Filter data based on selections
+# --------------------------------------------------
+
+selected_df = category_df[
+    category_df["Sub_Category"].isin(selected_subcategories)
+]
+
+# --------------------------------------------------
+# 3. Line chart of Sales
+# --------------------------------------------------
+
+if len(selected_subcategories) > 0:
+
+    sales_by_subcategory = (
+        selected_df
+        .groupby("Sub_Category")["Sales"]
+        .sum()
+        .sort_values(ascending=False)
+    )
+
+    st.subheader("Sales by Selected Sub-Category")
+
+    st.line_chart(sales_by_subcategory)
+
+# --------------------------------------------------
+# 4. Three metrics
+# --------------------------------------------------
+
+if len(selected_subcategories) > 0:
+
+    total_sales = selected_df["Sales"].sum()
+    total_profit = selected_df["Profit"].sum()
+
+    overall_profit_margin = (
+        total_profit / total_sales * 100
+        if total_sales != 0
+        else 0
+    )
+
+    # --------------------------------------------------
+    # 5. Overall average profit margin
+    #    across ALL products/categories
+    # --------------------------------------------------
+
+    all_sales = df["Sales"].sum()
+    all_profit = df["Profit"].sum()
+
+    overall_average_profit_margin = (
+        all_profit / all_sales * 100
+        if all_sales != 0
+        else 0
+    )
+
+    # Difference between selected products and overall average
+    margin_difference = (
+        overall_profit_margin - overall_average_profit_margin
+    )
+
+    # Display metrics
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric(
+        "Total Sales",
+        f"${total_sales:,.2f}"
+    )
+
+    col2.metric(
+        "Total Profit",
+        f"${total_profit:,.2f}"
+    )
+
+    col3.metric(
+        "Overall Profit Margin",
+        f"{overall_profit_margin:.2f}%",
+        delta=f"{margin_difference:.2f} percentage points"
+    )
+
+else:
+    st.warning("Please select at least one Sub_Category.")
+```
+
