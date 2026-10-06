@@ -172,4 +172,3 @@ if len(selected_subcategories) > 0:
         f"{overall_profit_margin:.2f}%",
         delta=f"{margin_difference:.2f} percentage points"
     )
-```
